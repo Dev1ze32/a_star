@@ -3,7 +3,7 @@ export const BUILDINGS = [
     id: 'main',
     name: 'Main Building',
     x: 250,
-    y: 445,
+    y: 465,
     width: 700,
     height: 280,
     color: 'slate',
