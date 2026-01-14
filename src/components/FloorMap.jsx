@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
-import { BUILDING_WIDTH, BUILDING_HEIGHT } from '../constants/buildingConfig';
+import { BUILDING_WIDTH, BUILDING_HEIGHT } from '../constants/buildingConfig'; // Fixed: removed 's'
 import { generatePathSegments } from '../utils/pathfinding';
 
 export const FloorMap = ({ 

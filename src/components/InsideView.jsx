@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NavigationControls } from './NavigationControls';
 import { FloorMap } from './FloorMap';
+import { BUILDINGS } from '../constants/buildingsConfig';
 
 export const InsideView = ({ 
   graph, 
@@ -13,12 +14,22 @@ export const InsideView = ({
   activeFloor, 
   setActiveFloor, 
   calculatePath,
+  buildingId,
   onExit 
 }) => {
   const [designMode, setDesignMode] = useState(false);
+  
+  const currentBuilding = BUILDINGS.find(b => b.id === buildingId);
 
   return (
     <div className="flex flex-col h-full bg-slate-50">
+      {/* Building Name Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 shadow-md">
+        <h2 className="text-2xl font-bold text-center">
+          {currentBuilding?.name || 'Building'} - Interior Map
+        </h2>
+      </div>
+
       <NavigationControls
         onExit={onExit}
         startNode={startNode}
