@@ -56,7 +56,9 @@ const calculateWeight = (currentNode, neighborNode) => {
     Math.pow(neighborNode.y - currentNode.y, 2)
   );
   const floorDiff = Math.abs(neighborNode.floor - currentNode.floor);
-  return dist + (floorDiff * 50);
+  
+  // ⚠️ IMPORTANT: Increased stair penalty to make A* prefer staying on same floor longer
+  return dist + (floorDiff * 200); // Increased from 50 to 200
 };
 
 const reconstructPath = (cameFrom, current) => {
@@ -68,8 +70,11 @@ const reconstructPath = (cameFrom, current) => {
   return totalPath;
 };
 
+// ✅ FIXED: Now handles both buildings correctly
 export const generatePathSegments = (path, graph, activeFloor) => {
   const segments = [];
+  
+  if (!path || path.length < 2) return segments;
   
   for (let i = 0; i < path.length - 1; i++) {
     const currId = path[i];
@@ -77,9 +82,12 @@ export const generatePathSegments = (path, graph, activeFloor) => {
     const n1 = graph[currId];
     const n2 = graph[nextId];
 
-    if (n1.floor === activeFloor && n2.floor === activeFloor) {
+    // Safety check
+    if (!n1 || !n2) continue;
+
+    if (n1.floor == activeFloor && n2.floor == activeFloor) {
       segments.push({ x1: n1.x, y1: n1.y, x2: n2.x, y2: n2.y, type: 'walk' });
-    } else if (n1.floor === activeFloor && n2.floor !== activeFloor) {
+    } else if (n1.floor == activeFloor && n2.floor != activeFloor) {
       const direction = n2.floor > n1.floor ? 'UP' : 'DOWN';
       segments.push({ x1: n1.x, y1: n1.y, x2: n1.x, y2: n1.y, type: 'transition', direction });
     }

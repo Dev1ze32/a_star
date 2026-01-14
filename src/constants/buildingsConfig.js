@@ -2,10 +2,10 @@ export const BUILDINGS = [
   {
     id: 'main',
     name: 'Main Building',
-    x: 200,
-    y: 554,
-    width: 800,
-    height: 190,
+    x: 400,
+    y: 300,
+    width: 384,
+    height: 320,
     color: 'slate',
     windows: 12,
     hasGraph: true
@@ -13,24 +13,24 @@ export const BUILDINGS = [
   {
     id: 'bch',
     name: 'BCH Building',
-    x: 270,
-    y: 5,
-    width: 250,
-    height: 180,
+    x: 100,
+    y: 200,
+    width: 300,
+    height: 280,
     color: 'blue',
     windows: 9,
-    hasGraph: false
+    hasGraph: true // ✅ CHANGED FROM false TO true
   },
   {
     id: 'nursing',
     name: 'Nursing Building',
-    x: 680,
-    y: 150,
-    width: 250,
-    height: 200,
+    x: 750,
+    y: 250,
+    width: 320,
+    height: 300,
     color: 'green',
     windows: 10,
-    hasGraph: false
+    hasGraph: true
   }
 ];
 

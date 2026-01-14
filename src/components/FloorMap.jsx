@@ -63,7 +63,7 @@ export const FloorMap = ({
           <g>
             <rect x="350" y="50" width="80" height="100" fill="#e2e8f0" stroke="#cbd5e1" />
             <text x="390" y="105" textAnchor="middle" className="text-xs font-bold fill-slate-500 pointer-events-none">STAIR M</text>
-            <rect x="430" y="120" width="100" height="160" fill="url(#tiles)" stroke="none" />
+            <rect x="110" y="180" width="780" height="40" fill="url(#tiles)" stroke="black" />
             <rect x="450" y="50" width="40" height="130" fill="url(#tiles)" stroke="none" />
             <line x1="450" y1="50" x2="450" y2="180" stroke="#cbd5e1" strokeWidth="2" />
             <line x1="490" y1="50" x2="490" y2="180" stroke="#cbd5e1" strokeWidth="2" />
