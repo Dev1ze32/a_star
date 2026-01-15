@@ -14,10 +14,17 @@ export const UnifiedNavigationControls = ({
   designMode,
   setDesignMode
 }) => {
-  // We only need state for the Destination Building now
   const [endBuildId, setEndBuildId] = useState('main');
 
   const getRooms = (buildId) => roomsByBuilding[buildId] || [];
+
+  // ✅ FIXED: Determine max floor index based on active building
+  // Main & Nursing = 4 floors (0-3)
+  // BCH = 5 floors (0-4)
+  const maxFloorIndex = activeBuilding === 'bch' ? 4 : 3;
+  
+  // Create array of floors [0, 1, 2, 3...]
+  const floorButtons = Array.from({ length: maxFloorIndex + 1 }, (_, i) => i);
 
   return (
     <div className="flex flex-col gap-6 p-2">
@@ -35,7 +42,7 @@ export const UnifiedNavigationControls = ({
 
       <div className="flex flex-col gap-4">
         
-        {/* ✅ FIXED: Static Start Location Indicator */}
+        {/* Static Start Location Indicator */}
         <div className="bg-blue-50 border border-blue-100 p-3 rounded-lg flex items-center gap-3">
             <div className="w-3 h-3 rounded-full bg-blue-500 animate-pulse"></div>
             <div>
@@ -112,7 +119,8 @@ export const UnifiedNavigationControls = ({
             Current Floor
           </label>
           <div className="flex justify-center gap-2">
-            {[0, 1, 2, 3, 4].map(f => (
+            {/* ✅ FIXED: Render dynamic floor buttons */}
+            {floorButtons.map(f => (
               <button
                 key={f}
                 onClick={() => setActiveFloor(f)}

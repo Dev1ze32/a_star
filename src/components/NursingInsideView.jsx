@@ -37,6 +37,7 @@ export const NursingInsideView = ({
         setActiveFloor={setActiveFloor}
         designMode={designMode}
         setDesignMode={setDesignMode}
+        maxFloors={3} // ✅ FIXED: Nursing Building has 4 floors (0-3)
       />
 
       <div className="flex-1 overflow-auto relative bg-emerald-50 flex items-center justify-center p-8">
@@ -59,7 +60,7 @@ export const NursingInsideView = ({
         ) : (
           path.length > 0 ? (
             <span className="font-semibold text-green-600">Navigation Active: Follow the dotted line.</span>
-          ) : "Select Start and Destination to find your path."
+          ) : "Select Destination to find your path."
         )}
       </div>
     </div>

@@ -23,7 +23,6 @@ export const InsideView = ({
 
   return (
     <div className="flex flex-col h-full bg-slate-50">
-      {/* Building Name Header */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 shadow-md">
         <h2 className="text-2xl font-bold text-center">
           {currentBuilding?.name || 'Building'} - Interior Map
@@ -42,6 +41,7 @@ export const InsideView = ({
         setActiveFloor={setActiveFloor}
         designMode={designMode}
         setDesignMode={setDesignMode}
+        maxFloors={3} // ✅ FIXED: Main Building has 4 floors (0-3)
       />
 
       <div className="flex-1 overflow-auto relative bg-slate-50 flex items-center justify-center p-8">
@@ -53,7 +53,6 @@ export const InsideView = ({
           endNode={endNode}
           onNodeClick={setEndNode}
           designMode={designMode}
-          buildingId={buildingId}
         />
       </div>
 
@@ -65,7 +64,7 @@ export const InsideView = ({
         ) : (
           path.length > 0 ? (
             <span className="font-semibold text-blue-600">Navigation Active: Follow the dotted line.</span>
-          ) : "Select a Start Point and Destination."
+          ) : "Select a Destination."
         )}
       </div>
     </div>
