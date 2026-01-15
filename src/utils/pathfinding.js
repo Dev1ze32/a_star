@@ -56,9 +56,7 @@ const calculateWeight = (currentNode, neighborNode) => {
     Math.pow(neighborNode.y - currentNode.y, 2)
   );
   const floorDiff = Math.abs(neighborNode.floor - currentNode.floor);
-  
-  // ⚠️ IMPORTANT: Increased stair penalty to make A* prefer staying on same floor longer
-  return dist + (floorDiff * 200); // Increased from 50 to 200
+  return dist + (floorDiff * 200);
 };
 
 const reconstructPath = (cameFrom, current) => {
@@ -70,8 +68,8 @@ const reconstructPath = (cameFrom, current) => {
   return totalPath;
 };
 
-// ✅ FIXED: Now handles both buildings correctly
-export const generatePathSegments = (path, graph, activeFloor) => {
+// ✅ UPDATED: Added 'nursing' filter support
+export const generatePathSegments = (path, graph, activeFloor, buildingFilter = null) => {
   const segments = [];
   
   if (!path || path.length < 2) return segments;
@@ -82,8 +80,29 @@ export const generatePathSegments = (path, graph, activeFloor) => {
     const n1 = graph[currId];
     const n2 = graph[nextId];
 
-    // Safety check
     if (!n1 || !n2) continue;
+
+    // 🛡️ STRICT FILTERING
+    if (buildingFilter) {
+      // 1. If explicit building tag exists, use it
+      if (n1.building && n1.building !== buildingFilter) continue;
+      if (n2.building && n2.building !== buildingFilter) continue;
+
+      // 2. Fallback: Check ID patterns if building tag is missing
+      if (!n1.building || !n2.building) {
+        if (buildingFilter === 'bch') {
+           if (!n1.id.includes('BCH') || !n2.id.includes('BCH')) continue;
+        }
+        else if (buildingFilter === 'nursing') {
+           const isNursing = (id) => id.includes('Nursing') || id.startsWith('NF');
+           if (!isNursing(n1.id) || !isNursing(n2.id)) continue;
+        }
+        else if (buildingFilter === 'main') {
+           const isOther = (id) => id.includes('BCH') || id.includes('Nursing') || id.startsWith('NF');
+           if (isOther(n1.id) || isOther(n2.id)) continue;
+        }
+      }
+    }
 
     if (n1.floor == activeFloor && n2.floor == activeFloor) {
       segments.push({ x1: n1.x, y1: n1.y, x2: n2.x, y2: n2.y, type: 'walk' });

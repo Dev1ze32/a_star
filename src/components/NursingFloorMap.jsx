@@ -19,15 +19,14 @@ export const NursingFloorMap = ({
 }) => {
   const [cursor, setCursor] = useState({ x: 0, y: 0 });
   
-  //const currentNodes = Object.values(graph).filter(n => n.floor == activeFloor);
+  // ✅ STRICT FILTER: Only show nodes belonging to Nursing Building
   const currentNodes = Object.values(graph).filter(n => 
-    n.floor == activeFloor && (
-      n.id.toString().startsWith('N') || // Nursing rooms
-      n.type === 'library' ||            // Special case for Library
-      n.type === 'entrance'              // Special case for Entrance
-    )
+    n.floor == activeFloor && 
+    (n.building === 'nursing' || n.id.toString().includes('Nursing') || n.id.toString().startsWith('NF'))
   );
-  const pathSegments = generatePathSegments(path, graph, activeFloor);
+
+  // ✅ STRICT PATH: Pass 'nursing' to ensure we only draw Nursing paths
+  const pathSegments = generatePathSegments(path, graph, activeFloor, 'nursing');
   
   const floorNum = activeFloor + 1;
   const floorConfig = NURSING_FLOOR_CONFIG[floorNum];

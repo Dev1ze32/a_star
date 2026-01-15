@@ -53,6 +53,7 @@ export const InsideView = ({
           endNode={endNode}
           onNodeClick={setEndNode}
           designMode={designMode}
+          buildingId={buildingId}
         />
       </div>
 

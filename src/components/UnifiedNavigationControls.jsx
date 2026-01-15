@@ -1,21 +1,6 @@
-/**
- * ═══════════════════════════════════════════════════════════════════
- * UNIFIED NAVIGATION CONTROLS
- * ═══════════════════════════════════════════════════════════════════
- * 
- * FILE LOCATION: src/components/UnifiedNavigationControls.jsx
- * 
- * Enhanced navigation controls with:
- * - Building selection dropdown
- * - Floor selection (context-aware based on selected building)
- * - Room/location selection organized by building
- * - Cross-building path indicator
- * 
- * ═══════════════════════════════════════════════════════════════════
- */
-
-import React, { useState } from 'react';
-import { ArrowLeft, Navigation, PenTool, Building2, MapPin } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, MapPin, Navigation, Building, CornerDownRight } from 'lucide-react';
+import { BUILDINGS } from '../constants/buildingsConfig';
 
 export const UnifiedNavigationControls = ({
   onExit,
@@ -28,212 +13,180 @@ export const UnifiedNavigationControls = ({
   activeFloor,
   setActiveFloor,
   activeBuilding,
-  setActiveBuilding,
   designMode,
-  setDesignMode,
-  isCrossBuildingPath,
-  graph
+  setDesignMode
 }) => {
-  // Track which building is selected for start/end dropdowns
-  const [startBuilding, setStartBuilding] = useState('main');
-  const [endBuilding, setEndBuilding] = useState('main');
+  // Local state to filter room dropdowns by building
+  const [startBuildId, setStartBuildId] = useState('main');
+  const [endBuildId, setEndBuildId] = useState('nursing');
 
-  // Get max floors for current building
-  const getMaxFloors = (building) => {
-    switch(building) {
-      case 'main': return 3;      // Main: G, 1, 2, 3 (0-3)
-      case 'nursing': return 3;   // Nursing: 1, 2, 3, 4 (0-3 in code)
-      case 'bch': return 4;       // BCH: G, 1, 2, 3, 4 (0-4)
-      default: return 0;
-    }
-  };
-
-  // Generate floor buttons for active building
-  const floorButtons = [];
-  const maxFloors = getMaxFloors(activeBuilding);
-  for (let f = 0; f <= maxFloors; f++) {
-    floorButtons.push(f);
-  }
+  // Helper to get rooms for a selected building
+  const getRooms = (buildId) => roomsByBuilding[buildId] || [];
 
   return (
-    <div className="bg-white p-4 shadow-md z-10">
-      <div className="max-w-7xl mx-auto space-y-4">
+    <div className="flex flex-col gap-6 p-2">
+      
+      {/* ══════════════════════════════════════════════════════ */}
+      {/* HEADER / EXIT BUTTON                                   */}
+      {/* Only show "Back to Campus" if we are inside a building */}
+      {/* ══════════════════════════════════════════════════════ */}
+      {activeBuilding !== 'outdoor' && (
+        <button 
+          onClick={onExit}
+          className="flex items-center justify-center w-full py-2 px-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-semibold transition-colors border border-slate-200"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Return to Campus View
+        </button>
+      )}
+
+      {/* ══════════════════════════════════════════════════════ */}
+      {/* ROUTE SELECTION CARD                                   */}
+      {/* ══════════════════════════════════════════════════════ */}
+      <div className="flex flex-col gap-4">
         
-        {/* ══════════════════════════════════════════════════════ */}
-        {/* TOP ROW: Exit Button + Building Selector              */}
-        {/* ══════════════════════════════════════════════════════ */}
-        <div className="flex items-center justify-between">
-          <button 
-            onClick={onExit}
-            className="flex items-center text-slate-600 hover:text-blue-600 font-semibold transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 mr-1" /> Exit to Campus
-          </button>
-
-          {/* Building Selector */}
-          <div className="flex items-center space-x-2 bg-slate-100 px-4 py-2 rounded-lg border border-slate-200">
-            <Building2 className="w-5 h-5 text-slate-600" />
-            <span className="text-sm font-medium text-slate-600">Viewing:</span>
-            <select
-              value={activeBuilding}
-              onChange={(e) => setActiveBuilding(e.target.value)}
-              className="px-3 py-1 rounded border border-slate-300 text-sm font-semibold bg-white"
-            >
-              <option value="main">Main Building</option>
-              <option value="nursing">Nursing Building</option>
-              <option value="outdoor">Campus Map</option>
-            </select>
+        {/* START SECTION */}
+        <div className="relative">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Start Location</label>
           </div>
-
-          {/* Design Mode Toggle */}
-          <button 
-            onClick={() => setDesignMode(!designMode)}
-            className={`p-2 rounded border transition-all ${
-              designMode 
-                ? 'bg-amber-100 border-amber-500 text-amber-700' 
-                : 'bg-white border-slate-300 text-slate-400 hover:border-slate-400'
-            }`}
-            title="Toggle Design Mode"
-          >
-            <PenTool className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* ══════════════════════════════════════════════════════ */}
-        {/* MIDDLE ROW: Start/End Selection + Find Path Button    */}
-        {/* ══════════════════════════════════════════════════════ */}
-        <div className="flex flex-wrap items-center justify-center gap-4 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
           
-          {/* Start Location Selection */}
-          <div className="flex flex-col space-y-2">
-            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
-              <MapPin className="w-3 h-3 inline mr-1" />
-              Start Location
-            </label>
-            <div className="flex space-x-2">
-              {/* Building selector for start */}
-              <select
-                value={startBuilding}
-                onChange={(e) => {
-                  setStartBuilding(e.target.value);
-                  setStartNode(''); // Clear selection when building changes
-                }}
-                className="px-3 py-2 rounded border border-slate-300 text-sm bg-white font-medium"
-              >
-                <option value="main">Main Bldg</option>
-                <option value="nursing">Nursing</option>
-              </select>
-              
-              {/* Room selector for start */}
+          <div className="flex flex-col gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
+            {/* Start Building Select */}
+            <div className="relative">
+              <Building className="absolute left-2 top-2.5 w-3 h-3 text-slate-400" />
               <select 
-                className="px-3 py-2 rounded border border-slate-300 text-sm min-w-[200px] bg-white"
+                value={startBuildId} 
+                onChange={(e) => setStartBuildId(e.target.value)}
+                className="w-full pl-7 pr-2 py-1.5 text-sm bg-white border border-slate-200 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+              >
+                {BUILDINGS.map(b => (
+                  <option key={b.id} value={b.id}>{b.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Start Room Select */}
+            <div className="relative">
+              <CornerDownRight className="absolute left-2 top-2.5 w-3 h-3 text-slate-400" />
+              <select 
                 value={startNode} 
                 onChange={(e) => setStartNode(e.target.value)}
+                className="w-full pl-7 pr-2 py-1.5 text-sm bg-white border border-slate-200 rounded focus:ring-2 focus:ring-blue-500 outline-none"
               >
-                <option value="">Select Start...</option>
-                {roomsByBuilding[startBuilding]?.map(room => {
-                  const floorLabel = room.floor === 0 ? 'G' : room.floor;
-                  return (
-                    <option key={room.id} value={room.id}>
-                      {room.label || room.id} (F{floorLabel})
-                    </option>
-                  );
-                })}
+                <option value="">Select Room...</option>
+                {getRooms(startBuildId).map(r => (
+                  <option key={r.id} value={r.id}>
+                    {r.label || r.id} {r.floor !== undefined ? `(F${r.floor === 0 ? 'G' : r.floor})` : ''}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
-
-          {/* Arrow Icon */}
-          <div className="text-blue-400 self-end pb-2">
-            <Navigation className="w-6 h-6"/>
-          </div>
-
-          {/* End Location Selection */}
-          <div className="flex flex-col space-y-2">
-            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
-              <MapPin className="w-3 h-3 inline mr-1" />
-              Destination
-            </label>
-            <div className="flex space-x-2">
-              {/* Building selector for end */}
-              <select
-                value={endBuilding}
-                onChange={(e) => {
-                  setEndBuilding(e.target.value);
-                  setEndNode(''); // Clear selection when building changes
-                }}
-                className="px-3 py-2 rounded border border-slate-300 text-sm bg-white font-medium"
-              >
-                <option value="main">Main Bldg</option>
-                <option value="nursing">Nursing</option>
-              </select>
-              
-              {/* Room selector for end */}
-              <select 
-                className="px-3 py-2 rounded border border-slate-300 text-sm min-w-[200px] bg-white"
-                value={endNode} 
-                onChange={(e) => setEndNode(e.target.value)}
-              >
-                <option value="">Select Destination...</option>
-                {roomsByBuilding[endBuilding]?.map(room => {
-                  const floorLabel = room.floor === 0 ? 'G' : room.floor;
-                  return (
-                    <option key={room.id} value={room.id}>
-                      {room.label || room.id} (F{floorLabel})
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-          </div>
-
-          {/* Find Path Button */}
-          <button 
-            onClick={onCalculatePath}
-            disabled={!startNode || !endNode}
-            className={`self-end px-6 py-2 rounded-lg font-bold shadow-md transition-all ${
-              startNode && endNode
-                ? 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg transform hover:scale-105'
-                : 'bg-slate-300 text-slate-500 cursor-not-allowed'
-            }`}
-          >
-            Find Path
-          </button>
         </div>
 
-        {/* ══════════════════════════════════════════════════════ */}
-        {/* BOTTOM ROW: Floor Navigation (only for buildings)     */}
-        {/* ══════════════════════════════════════════════════════ */}
-        {activeBuilding !== 'outdoor' && (
-          <div className="flex items-center justify-center space-x-4 bg-slate-50 p-3 rounded-lg border border-slate-200">
-            <span className="text-slate-500 font-medium">Floor:</span>
-            
-            {floorButtons.map(f => {
-              const label = f === 0 ? 'G' : f;
-              return (
-                <button
-                  key={f}
-                  onClick={() => setActiveFloor(f)}
-                  className={`w-12 h-12 rounded-full font-bold transition-all ${
-                    activeFloor === f 
-                      ? 'bg-blue-600 text-white shadow-lg scale-110 ring-4 ring-blue-200' 
-                      : 'bg-white text-slate-600 border-2 border-slate-300 hover:bg-slate-100 hover:border-blue-300'
-                  }`}
-                >
-                  {label}
-                </button>
-              );
-            })}
+        {/* CONNECTING LINE VISUAL */}
+        <div className="flex justify-center -my-2">
+           <div className="h-4 w-0.5 bg-slate-300"></div>
+        </div>
 
-            {/* Cross-building indicator */}
-            {isCrossBuildingPath && (
-              <div className="ml-4 px-3 py-1 bg-amber-100 border border-amber-400 rounded-full text-xs font-bold text-amber-700">
-                🚶 Multi-Building Route
-              </div>
-            )}
+        {/* DESTINATION SECTION */}
+        <div className="relative">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-2 h-2 rounded-full bg-red-500"></div>
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Destination</label>
           </div>
-        )}
+
+          <div className="flex flex-col gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
+            {/* End Building Select */}
+            <div className="relative">
+              <Building className="absolute left-2 top-2.5 w-3 h-3 text-slate-400" />
+              <select 
+                value={endBuildId} 
+                onChange={(e) => setEndBuildId(e.target.value)}
+                className="w-full pl-7 pr-2 py-1.5 text-sm bg-white border border-slate-200 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+              >
+                {BUILDINGS.map(b => (
+                  <option key={b.id} value={b.id}>{b.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* End Room Select */}
+            <div className="relative">
+              <MapPin className="absolute left-2 top-2.5 w-3 h-3 text-slate-400" />
+              <select 
+                value={endNode} 
+                onChange={(e) => setEndNode(e.target.value)}
+                className="w-full pl-7 pr-2 py-1.5 text-sm bg-white border border-slate-200 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+              >
+                <option value="">Select Destination...</option>
+                {getRooms(endBuildId).map(r => (
+                  <option key={r.id} value={r.id}>
+                    {r.label || r.id} {r.floor !== undefined ? `(F${r.floor === 0 ? 'G' : r.floor})` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* ACTION BUTTON */}
+        <button 
+          onClick={onCalculatePath}
+          disabled={!startNode || !endNode}
+          className={`w-full py-3 rounded-lg font-bold shadow-sm flex items-center justify-center transition-all ${
+            startNode && endNode 
+              ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md' 
+              : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+          }`}
+        >
+          <Navigation className="w-4 h-4 mr-2" />
+          Find Path
+        </button>
       </div>
+
+      {/* ══════════════════════════════════════════════════════ */}
+      {/* FLOOR CONTROLS (Only visible when inside a building)    */}
+      {/* ══════════════════════════════════════════════════════ */}
+      {activeBuilding !== 'outdoor' && (
+        <div className="mt-2 pt-4 border-t border-slate-200">
+          <label className="text-xs font-bold text-slate-400 uppercase mb-2 block text-center">
+            Current Floor
+          </label>
+          <div className="flex justify-center gap-2">
+            {[0, 1, 2, 3, 4].map(f => (
+              <button
+                key={f}
+                onClick={() => setActiveFloor(f)}
+                className={`w-10 h-10 rounded-full font-bold text-sm transition-all border ${
+                  activeFloor === f
+                    ? 'bg-slate-800 text-white border-slate-800 shadow-lg scale-110'
+                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400 hover:bg-slate-50'
+                }`}
+              >
+                {f === 0 ? 'G' : f}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* DESIGN MODE TOGGLE (Subtle) */}
+      <div className="mt-auto pt-6 text-center">
+        <button 
+          onClick={() => setDesignMode(!designMode)}
+          className={`text-xs px-3 py-1 rounded-full border ${
+            designMode 
+              ? 'bg-amber-100 text-amber-700 border-amber-300' 
+              : 'text-slate-400 border-transparent hover:border-slate-200'
+          }`}
+        >
+          {designMode ? 'Disable Design Mode' : 'Enable Design Mode'}
+        </button>
+      </div>
+
     </div>
   );
 };

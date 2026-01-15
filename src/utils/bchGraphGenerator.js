@@ -27,9 +27,9 @@ export const generateBCHBuildingGraph = () => {
     const stairId = `${floorPrefix}_Stair`;
     const elevatorId = `${floorPrefix}_Elevator`;
     
-    // ✅ Nodes created at new Top-Row Y position
-    nodes[stairId] = { id: stairId, x: BCH_STAIR_X, y: BCH_STAIR_Y, floor, type: 'stair', neighbors: [] };
-    nodes[elevatorId] = { id: elevatorId, x: BCH_ELEVATOR_X, y: BCH_ELEVATOR_Y, floor, type: 'elevator', neighbors: [] };
+    // ✅ ADDED building: 'bch'
+    nodes[stairId] = { id: stairId, x: BCH_STAIR_X, y: BCH_STAIR_Y, floor, building: 'bch', type: 'stair', neighbors: [] };
+    nodes[elevatorId] = { id: elevatorId, x: BCH_ELEVATOR_X, y: BCH_ELEVATOR_Y, floor, building: 'bch', type: 'elevator', neighbors: [] };
 
     // Connect vertically (Floor to Floor)
     if (floor > 0) {
@@ -44,23 +44,23 @@ export const generateBCHBuildingGraph = () => {
     // 2. SINGLE HALLWAY GENERATION
     let prevHallId = null;
     
-    // ✅ CRITICAL FIX: Start at 50 (not 60) to align with room logic (50, 100, 150...)
     for (let x = 50; x <= 1150; x += BCH_HALL_NODE_SPACING) {
       const hallId = `${floorPrefix}_Hall_${x}`;
       
+      // ✅ ADDED building: 'bch'
       nodes[hallId] = {
         id: hallId,
         x: x,
         y: BCH_HALL_Y,
         floor: floor,
+        building: 'bch',
         type: 'hall',
         neighbors: prevHallId ? [prevHallId] : []
       };
 
       if (prevHallId) nodes[prevHallId].neighbors.push(hallId);
       
-      // Connect Hallway to Stairs/Elevator (Vertical Connection)
-      // Since Stairs are at Y=150 and Hall is Y=250, we connect if X aligns
+      // Connect Hallway to Stairs/Elevator
       if (Math.abs(x - BCH_STAIR_X) < (BCH_HALL_NODE_SPACING / 1.5)) {
         nodes[hallId].neighbors.push(stairId);
         nodes[stairId].neighbors.push(hallId);
@@ -76,31 +76,28 @@ export const generateBCHBuildingGraph = () => {
     // 3. ROOM GENERATION
     const createRoom = (roomNum, x, y) => {
       const roomId = `BCH Room ${roomNum}`;
-      // Find nearest hallway node (Rounding now matches the loop above)
       const nearestHallX = Math.round(x / BCH_HALL_NODE_SPACING) * BCH_HALL_NODE_SPACING;
       
-      // Safety bounds
       let safeHallX = nearestHallX;
       if (safeHallX < 50) safeHallX = 50; 
       
       const hallId = `${floorPrefix}_Hall_${safeHallX}`;
       
+      // ✅ ADDED building: 'bch'
       nodes[roomId] = {
         id: roomId,
         x: x,
         y: y,
         floor: floor,
+        building: 'bch',
         type: 'room',
         label: `${roomNum}`,
         neighbors: []
       };
 
-      // Connect Room to Hallway
       if (nodes[hallId]) {
         nodes[roomId].neighbors.push(hallId);
         nodes[hallId].neighbors.push(roomId);
-      } else {
-        console.warn(`Orphaned Room: ${roomId} at X:${x} could not find Hall Node ${hallId}`);
       }
     };
 
@@ -129,11 +126,13 @@ export const generateBCHBuildingGraph = () => {
   const entHallX = Math.round(BCH_ENTRANCE_X / BCH_HALL_NODE_SPACING) * BCH_HALL_NODE_SPACING;
   const entHallId = `BCH_F0_Hall_${entHallX}`;
   
+  // ✅ ADDED building: 'bch'
   nodes[entranceId] = {
     id: entranceId, 
     x: BCH_ENTRANCE_X, 
     y: BCH_ENTRANCE_Y, 
     floor: 0, 
+    building: 'bch',
     type: 'entrance', 
     neighbors: [entHallId] 
   };

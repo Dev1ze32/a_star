@@ -1,42 +1,13 @@
-/**
- * ═══════════════════════════════════════════════════════════════════
- * OUTDOOR CAMPUS CONFIGURATION (FIXED VERSION)
- * ═══════════════════════════════════════════════════════════════════
- * 
- * FILE LOCATION: src/constants/outdoorConfig.js
- * 
- * FIXES APPLIED:
- * ✅ Removed duplicate "Nursing_Entrance" outdoor node
- * ✅ Only one entrance path: outdoor roads → existing "Nursing Entrance" (indoor)
- * ✅ Simplified connection logic
- * 
- * CONNECTION FLOW:
- * Main Building "Back Exit" (indoor)
- *   ↓
- * "Main_Exit" (outdoor node)
- *   ↓
- * Road nodes (outdoor)
- *   ↓
- * "Nursing Entrance" (indoor node - already exists in nursingGraphGenerator)
- * 
- * ═══════════════════════════════════════════════════════════════════
- */
-
 import { CAMPUS_WIDTH, CAMPUS_HEIGHT } from './buildingsConfig';
 
-/**
- * OUTDOOR NODES - CAMPUS PATHWAYS
- * These nodes create the walking paths between buildings
- */
 export const OUTDOOR_NODES = {
   // ┌─────────────────────────────────────────────────────────────────┐
   // │ MAIN BUILDING EXIT CONNECTION                                    │
   // └─────────────────────────────────────────────────────────────────┘
-  
   'Main_Exit': {
     id: 'Main_Exit',
-    x: 600,           // Center of Main Building
-    y: 510,           // Just outside the building (front)
+    x: 600,
+    y: 420,           // ✅ UPDATED to match new Main Building Y (380 + offset)
     floor: 0,
     building: 'outdoor',
     type: 'exit',
@@ -46,13 +17,11 @@ export const OUTDOOR_NODES = {
 
   // ┌─────────────────────────────────────────────────────────────────┐
   // │ CENTRAL CAMPUS ROAD NODES                                        │
-  // │ These create the main pathway connecting buildings               │
   // └─────────────────────────────────────────────────────────────────┘
-  
   'Road_Central_1': {
     id: 'Road_Central_1',
     x: 600,
-    y: 420,           // On the horizontal path
+    y: 350,           // ✅ Shifted Up
     floor: 0,
     building: 'outdoor',
     type: 'road',
@@ -63,7 +32,7 @@ export const OUTDOOR_NODES = {
   'Road_Central_2': {
     id: 'Road_Central_2',
     x: 600,
-    y: 340,           // Moving up toward intersection
+    y: 290,           // ✅ Shifted Up
     floor: 0,
     building: 'outdoor',
     type: 'road',
@@ -71,11 +40,10 @@ export const OUTDOOR_NODES = {
     neighbors: ['Road_Central_1', 'Road_Junction']
   },
 
-  // Central junction where paths split
   'Road_Junction': {
     id: 'Road_Junction',
     x: 600,
-    y: 260,           // Center of campus (intersection point)
+    y: 240,           // ✅ Shifted Up (Intersection)
     floor: 0,
     building: 'outdoor',
     type: 'road',
@@ -86,11 +54,10 @@ export const OUTDOOR_NODES = {
   // ┌─────────────────────────────────────────────────────────────────┐
   // │ PATH TO NURSING BUILDING                                         │
   // └─────────────────────────────────────────────────────────────────┘
-  
   'Road_ToNursing_1': {
     id: 'Road_ToNursing_1',
     x: 700,
-    y: 260,
+    y: 240, // Match Junction Y
     floor: 0,
     building: 'outdoor',
     type: 'road',
@@ -101,7 +68,7 @@ export const OUTDOOR_NODES = {
   'Road_ToNursing_2': {
     id: 'Road_ToNursing_2',
     x: 800,
-    y: 260,
+    y: 240, // Match Junction Y
     floor: 0,
     building: 'outdoor',
     type: 'road',
@@ -109,29 +76,24 @@ export const OUTDOOR_NODES = {
     neighbors: ['Road_ToNursing_1', 'Road_ToNursing_3']
   },
 
-  // ✅ FIXED: Final outdoor node before entering Nursing Building
-  // This connects to the EXISTING "Nursing Entrance" node (indoor)
-  // Connection is made in unifiedGraphGenerator.js
   'Road_ToNursing_3': {
     id: 'Road_ToNursing_3',
     x: 880,
-    y: 260,           // Just outside Nursing Building
+    y: 240, // Match Junction Y
     floor: 0,
     building: 'outdoor',
     type: 'road',
     label: 'Path',
     neighbors: ['Road_ToNursing_2']
-    // NOTE: Connection to "Nursing Entrance" (indoor) added in unifiedGraphGenerator
   },
 
   // ┌─────────────────────────────────────────────────────────────────┐
-  // │ PATH TO BCH BUILDING (Coming Soon)                               │
+  // │ PATH TO BCH BUILDING                                             │
   // └─────────────────────────────────────────────────────────────────┘
-  
   'Road_ToBCH_1': {
     id: 'Road_ToBCH_1',
     x: 520,
-    y: 200,
+    y: 190,
     floor: 0,
     building: 'outdoor',
     type: 'road',
@@ -148,43 +110,19 @@ export const OUTDOOR_NODES = {
     type: 'road',
     label: 'Path',
     neighbors: ['Road_ToBCH_1']
-    // 🚧 BCH connection coming soon
   }
 };
 
-/**
- * ═══════════════════════════════════════════════════════════════════
- * VISUAL ROAD SEGMENTS FOR OUTSIDEVIEW
- * ═══════════════════════════════════════════════════════════════════
- * 
- * These define the visual roads/paths drawn on the campus map.
- * Each segment connects two points.
- */
 export const ROAD_SEGMENTS = [
   // Main Building to Junction
-  { x1: 600, y1: 510, x2: 600, y2: 260 },
+  { x1: 600, y1: 420, x2: 600, y2: 240 },
   
   // Junction to Nursing Building
-  { x1: 600, y1: 260, x2: 880, y2: 260 },
+  { x1: 600, y1: 240, x2: 880, y2: 240 },
   
-  // Junction to BCH Building (partial - coming soon)
-  { x1: 600, y1: 260, x2: 450, y2: 140 }
+  // Junction to BCH Building
+  { x1: 600, y1: 240, x2: 450, y2: 140 }
 ];
 
-/**
- * ═══════════════════════════════════════════════════════════════════
- * HELPER FUNCTIONS
- * ═══════════════════════════════════════════════════════════════════
- */
-
-/**
- * Get all outdoor nodes as an array
- */
 export const getOutdoorNodes = () => Object.values(OUTDOOR_NODES);
-
-/**
- * Check if a node ID is an outdoor node
- */
-export const isOutdoorNode = (nodeId) => {
-  return OUTDOOR_NODES.hasOwnProperty(nodeId);
-};
+export const isOutdoorNode = (nodeId) => OUTDOOR_NODES.hasOwnProperty(nodeId);
