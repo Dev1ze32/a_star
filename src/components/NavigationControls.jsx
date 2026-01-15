@@ -1,10 +1,8 @@
 import React from 'react';
-import { ArrowLeft, Navigation, PenTool } from 'lucide-react';
+import { ArrowLeft, Navigation, PenTool, MapPin } from 'lucide-react';
 
 export const NavigationControls = ({
   onExit,
-  startNode,
-  setStartNode,
   endNode,
   setEndNode,
   rooms,
@@ -13,9 +11,8 @@ export const NavigationControls = ({
   setActiveFloor,
   designMode,
   setDesignMode,
-  maxFloors = 4 // ✅ NEW: Support dynamic floor count (default 4 for Main/Nursing)
+  maxFloors = 4
 }) => {
-  // ✅ Generate floor buttons dynamically based on maxFloors
   const floorButtons = [];
   for (let f = 0; f <= maxFloors; f++) {
     floorButtons.push(f);
@@ -32,30 +29,36 @@ export const NavigationControls = ({
         </button>
 
         <div className="flex items-center space-x-4 bg-slate-100 p-2 rounded-lg border border-slate-200">
-          <div className="flex flex-col sm:flex-row gap-2">
-            <select 
-              className="p-2 rounded border border-slate-300 text-sm"
-              value={startNode} 
-              onChange={(e) => setStartNode(e.target.value)}
-            >
-              <option value="">Start Location</option>
-              {rooms.map(r => <option key={r.id} value={r.id}>{r.id} (F{r.floor === 0 ? 'G' : r.floor})</option>)}
-            </select>
-            <div className="text-slate-400 self-center">
-              <Navigation className="w-4 h-4"/>
+          <div className="flex items-center gap-2">
+            
+            {/* ✅ FIXED: Removed Start Select, Added Static Label */}
+            <div className="hidden sm:flex items-center text-xs font-bold text-slate-400 uppercase mr-1">
+              From Kiosk <ArrowLeft className="w-3 h-3 ml-1 rotate-180" />
             </div>
+
+            <MapPin className="w-4 h-4 text-red-500" />
+            
             <select 
-              className="p-2 rounded border border-slate-300 text-sm"
+              className="p-2 rounded border border-slate-300 text-sm w-48"
               value={endNode} 
               onChange={(e) => setEndNode(e.target.value)}
             >
-              <option value="">Destination</option>
-              {rooms.map(r => <option key={r.id} value={r.id}>{r.id} (F{r.floor === 0 ? 'G' : r.floor})</option>)}
+              <option value="">Select Destination...</option>
+              {rooms.map(r => (
+                <option key={r.id} value={r.id}>
+                  {r.label || r.id} (F{r.floor === 0 ? 'G' : r.floor})
+                </option>
+              ))}
             </select>
           </div>
           <button 
             onClick={onCalculatePath}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-bold shadow-sm"
+            disabled={!endNode}
+            className={`px-4 py-2 rounded font-bold shadow-sm ${
+              endNode 
+                ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                : 'bg-slate-300 text-slate-500 cursor-not-allowed'
+            }`}
           >
             Find Path
           </button>
@@ -63,7 +66,6 @@ export const NavigationControls = ({
 
         <div className="flex items-center space-x-2 mt-2 sm:mt-0">
           <span className="text-slate-500 font-medium mr-2">Floor:</span>
-          {/* ✅ DYNAMIC FLOOR BUTTONS */}
           {floorButtons.map(f => (
             <button
               key={f}

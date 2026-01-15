@@ -1,11 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, MapPin, Navigation, Building, CornerDownRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, MapPin, Navigation, Building } from 'lucide-react';
 import { BUILDINGS } from '../constants/buildingsConfig';
 
 export const UnifiedNavigationControls = ({
   onExit,
-  startNode,
-  setStartNode,
   endNode,
   setEndNode,
   roomsByBuilding,
@@ -16,20 +14,15 @@ export const UnifiedNavigationControls = ({
   designMode,
   setDesignMode
 }) => {
-  // Local state to filter room dropdowns by building
-  const [startBuildId, setStartBuildId] = useState('main');
-  const [endBuildId, setEndBuildId] = useState('nursing');
+  // We only need state for the Destination Building now
+  const [endBuildId, setEndBuildId] = useState('main');
 
-  // Helper to get rooms for a selected building
   const getRooms = (buildId) => roomsByBuilding[buildId] || [];
 
   return (
     <div className="flex flex-col gap-6 p-2">
       
-      {/* ══════════════════════════════════════════════════════ */}
-      {/* HEADER / EXIT BUTTON                                   */}
-      {/* Only show "Back to Campus" if we are inside a building */}
-      {/* ══════════════════════════════════════════════════════ */}
+      {/* Return Button */}
       {activeBuilding !== 'outdoor' && (
         <button 
           onClick={onExit}
@@ -40,58 +33,23 @@ export const UnifiedNavigationControls = ({
         </button>
       )}
 
-      {/* ══════════════════════════════════════════════════════ */}
-      {/* ROUTE SELECTION CARD                                   */}
-      {/* ══════════════════════════════════════════════════════ */}
       <div className="flex flex-col gap-4">
         
-        {/* START SECTION */}
-        <div className="relative">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Start Location</label>
-          </div>
-          
-          <div className="flex flex-col gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200">
-            {/* Start Building Select */}
-            <div className="relative">
-              <Building className="absolute left-2 top-2.5 w-3 h-3 text-slate-400" />
-              <select 
-                value={startBuildId} 
-                onChange={(e) => setStartBuildId(e.target.value)}
-                className="w-full pl-7 pr-2 py-1.5 text-sm bg-white border border-slate-200 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-              >
-                {BUILDINGS.map(b => (
-                  <option key={b.id} value={b.id}>{b.name}</option>
-                ))}
-              </select>
+        {/* ✅ FIXED: Static Start Location Indicator */}
+        <div className="bg-blue-50 border border-blue-100 p-3 rounded-lg flex items-center gap-3">
+            <div className="w-3 h-3 rounded-full bg-blue-500 animate-pulse"></div>
+            <div>
+                <div className="text-xs text-blue-400 font-bold uppercase">Starting From</div>
+                <div className="text-sm font-bold text-blue-900">Main Building Kiosk</div>
             </div>
-
-            {/* Start Room Select */}
-            <div className="relative">
-              <CornerDownRight className="absolute left-2 top-2.5 w-3 h-3 text-slate-400" />
-              <select 
-                value={startNode} 
-                onChange={(e) => setStartNode(e.target.value)}
-                className="w-full pl-7 pr-2 py-1.5 text-sm bg-white border border-slate-200 rounded focus:ring-2 focus:ring-blue-500 outline-none"
-              >
-                <option value="">Select Room...</option>
-                {getRooms(startBuildId).map(r => (
-                  <option key={r.id} value={r.id}>
-                    {r.label || r.id} {r.floor !== undefined ? `(F${r.floor === 0 ? 'G' : r.floor})` : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
         </div>
 
-        {/* CONNECTING LINE VISUAL */}
+        {/* CONNECTING DOTS */}
         <div className="flex justify-center -my-2">
            <div className="h-4 w-0.5 bg-slate-300"></div>
         </div>
 
-        {/* DESTINATION SECTION */}
+        {/* DESTINATION SELECTION */}
         <div className="relative">
           <div className="flex items-center gap-2 mb-1">
             <div className="w-2 h-2 rounded-full bg-red-500"></div>
@@ -135,9 +93,9 @@ export const UnifiedNavigationControls = ({
         {/* ACTION BUTTON */}
         <button 
           onClick={onCalculatePath}
-          disabled={!startNode || !endNode}
+          disabled={!endNode}
           className={`w-full py-3 rounded-lg font-bold shadow-sm flex items-center justify-center transition-all ${
-            startNode && endNode 
+            endNode 
               ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md' 
               : 'bg-slate-200 text-slate-400 cursor-not-allowed'
           }`}
@@ -147,9 +105,7 @@ export const UnifiedNavigationControls = ({
         </button>
       </div>
 
-      {/* ══════════════════════════════════════════════════════ */}
-      {/* FLOOR CONTROLS (Only visible when inside a building)    */}
-      {/* ══════════════════════════════════════════════════════ */}
+      {/* FLOOR CONTROLS (Only visible when inside a building) */}
       {activeBuilding !== 'outdoor' && (
         <div className="mt-2 pt-4 border-t border-slate-200">
           <label className="text-xs font-bold text-slate-400 uppercase mb-2 block text-center">
@@ -173,7 +129,7 @@ export const UnifiedNavigationControls = ({
         </div>
       )}
 
-      {/* DESIGN MODE TOGGLE (Subtle) */}
+      {/* DESIGN MODE TOGGLE */}
       <div className="mt-auto pt-6 text-center">
         <button 
           onClick={() => setDesignMode(!designMode)}
@@ -186,7 +142,6 @@ export const UnifiedNavigationControls = ({
           {designMode ? 'Disable Design Mode' : 'Enable Design Mode'}
         </button>
       </div>
-
     </div>
   );
 };
