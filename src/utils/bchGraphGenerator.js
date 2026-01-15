@@ -1,7 +1,7 @@
 import { 
   BCH_FLOORS,
   BCH_HALL_Y,
-  BCH_ROOMS_PER_SIDE,
+  BCH_ROOMS_PER_SIDE, // Should be 4 in config
   BCH_ROOM_START_X,
   BCH_ROOM_START_X_RIGHT,
   BCH_ROOM_SPACING_LEFT,
@@ -20,18 +20,19 @@ import {
 export const generateBCHBuildingGraph = () => {
   let nodes = {};
 
+  // ✅ FIX: Loop 5 times (0 to 4) for 5 floors
   for (let floor = 0; floor < BCH_FLOORS; floor++) {
     const floorPrefix = `BCH_F${floor}`;
     
-    // 1. STAIRS & ELEVATOR NODES
+    // 1. STAIRS & ELEVATOR
     const stairId = `${floorPrefix}_Stair`;
     const elevatorId = `${floorPrefix}_Elevator`;
     
-    // ✅ ADDED building: 'bch'
+    // ✅ FIX: Added building: 'bch' to prevent conflicts
     nodes[stairId] = { id: stairId, x: BCH_STAIR_X, y: BCH_STAIR_Y, floor, building: 'bch', type: 'stair', neighbors: [] };
     nodes[elevatorId] = { id: elevatorId, x: BCH_ELEVATOR_X, y: BCH_ELEVATOR_Y, floor, building: 'bch', type: 'elevator', neighbors: [] };
 
-    // Connect vertically (Floor to Floor)
+    // Connect Floors Vertically
     if (floor > 0) {
       const prevPrefix = `BCH_F${floor - 1}`;
       nodes[stairId].neighbors.push(`${prevPrefix}_Stair`);
@@ -41,26 +42,26 @@ export const generateBCHBuildingGraph = () => {
       nodes[`${prevPrefix}_Elevator`].neighbors.push(elevatorId);
     }
 
-    // 2. SINGLE HALLWAY GENERATION
+    // 2. HALLWAY NODES
     let prevHallId = null;
     
     for (let x = 50; x <= 1150; x += BCH_HALL_NODE_SPACING) {
       const hallId = `${floorPrefix}_Hall_${x}`;
       
-      // ✅ ADDED building: 'bch'
+      // ✅ FIX: Added building: 'bch'
       nodes[hallId] = {
         id: hallId,
         x: x,
         y: BCH_HALL_Y,
         floor: floor,
-        building: 'bch',
+        building: 'bch', 
         type: 'hall',
         neighbors: prevHallId ? [prevHallId] : []
       };
 
       if (prevHallId) nodes[prevHallId].neighbors.push(hallId);
       
-      // Connect Hallway to Stairs/Elevator
+      // Connect Hall to Stair/Elevator
       if (Math.abs(x - BCH_STAIR_X) < (BCH_HALL_NODE_SPACING / 1.5)) {
         nodes[hallId].neighbors.push(stairId);
         nodes[stairId].neighbors.push(hallId);
@@ -73,23 +74,22 @@ export const generateBCHBuildingGraph = () => {
       prevHallId = hallId;
     }
 
-    // 3. ROOM GENERATION
+    // 3. ROOM GENERATION (4 Top + 4 Bottom = 8 per Wing)
     const createRoom = (roomNum, x, y) => {
-      const roomId = `BCH Room ${roomNum}`;
+      const roomId = `BCH Room ${roomNum}`; // Unique ID
       const nearestHallX = Math.round(x / BCH_HALL_NODE_SPACING) * BCH_HALL_NODE_SPACING;
-      
       let safeHallX = nearestHallX;
       if (safeHallX < 50) safeHallX = 50; 
       
       const hallId = `${floorPrefix}_Hall_${safeHallX}`;
       
-      // ✅ ADDED building: 'bch'
+      // ✅ FIX: Added building: 'bch'
       nodes[roomId] = {
         id: roomId,
         x: x,
         y: y,
         floor: floor,
-        building: 'bch',
+        building: 'bch', 
         type: 'room',
         label: `${roomNum}`,
         neighbors: []
@@ -104,15 +104,17 @@ export const generateBCHBuildingGraph = () => {
     let roomCounter = 0;
     const floorNum = floor + 1; 
 
-    // Left Wing
+    // LEFT WING (8 Rooms)
     for (let i = 0; i < BCH_ROOMS_PER_SIDE; i++) {
       const x = BCH_ROOM_START_X + (i * BCH_ROOM_SPACING_LEFT);
+      // Create Top Room
       createRoom(floorNum * 100 + (roomCounter * 2), x, BCH_ROOM_TOP_Y);      
+      // Create Bottom Room
       createRoom(floorNum * 100 + (roomCounter * 2) + 1, x, BCH_ROOM_BOTTOM_Y); 
       roomCounter++;
     }
 
-    // Right Wing
+    // RIGHT WING (8 Rooms)
     for (let i = 0; i < BCH_ROOMS_PER_SIDE; i++) {
       const x = BCH_ROOM_START_X_RIGHT + (i * BCH_ROOM_SPACING_RIGHT);
       createRoom(floorNum * 100 + (roomCounter * 2), x, BCH_ROOM_TOP_Y);      
@@ -126,13 +128,13 @@ export const generateBCHBuildingGraph = () => {
   const entHallX = Math.round(BCH_ENTRANCE_X / BCH_HALL_NODE_SPACING) * BCH_HALL_NODE_SPACING;
   const entHallId = `BCH_F0_Hall_${entHallX}`;
   
-  // ✅ ADDED building: 'bch'
+  // ✅ FIX: Added building: 'bch'
   nodes[entranceId] = {
     id: entranceId, 
     x: BCH_ENTRANCE_X, 
     y: BCH_ENTRANCE_Y, 
     floor: 0, 
-    building: 'bch',
+    building: 'bch', 
     type: 'entrance', 
     neighbors: [entHallId] 
   };
