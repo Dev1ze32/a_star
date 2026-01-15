@@ -1,3 +1,17 @@
+/**
+ * ═══════════════════════════════════════════════════════════════════
+ * MAIN BUILDING GRAPH GENERATOR (UPDATED FOR UNIFIED SYSTEM)
+ * ═══════════════════════════════════════════════════════════════════
+ * 
+ * FILE LOCATION: src/utils/graphGenerator.js
+ * 
+ * CHANGES MADE:
+ * - Added "building: 'main'" property to ALL nodes
+ * - This allows the unified graph to identify which building each node belongs to
+ * 
+ * ═══════════════════════════════════════════════════════════════════
+ */
+
 import { FLOORS, ROOMS_PER_FLOOR, BUILDING_WIDTH, BUILDING_HEIGHT, HALL_Y } from '../constants/buildingConfig';
 
 export const generateBuildingGraph = () => {
@@ -24,9 +38,36 @@ const generateStairs = (floorPrefix, floor, nodes) => {
   const stairMidId = `${floorPrefix}_StairM`; 
   const stairRightId = `${floorPrefix}_StairR`;
 
-  nodes[stairLeftId] = { id: stairLeftId, x: 50, y: HALL_Y, floor, type: 'stair', neighbors: [] };
-  nodes[stairMidId] = { id: stairMidId, x: 390, y: 80, floor, type: 'stair', neighbors: [] }; 
-  nodes[stairRightId] = { id: stairRightId, x: 950, y: HALL_Y, floor, type: 'stair', neighbors: [] };
+  // ✅ CHANGED: Added "building: 'main'" to all stair nodes
+  nodes[stairLeftId] = { 
+    id: stairLeftId, 
+    x: 50, 
+    y: HALL_Y, 
+    floor, 
+    building: 'main',  // ← ADDED
+    type: 'stair', 
+    neighbors: [] 
+  };
+  
+  nodes[stairMidId] = { 
+    id: stairMidId, 
+    x: 390, 
+    y: 80, 
+    floor, 
+    building: 'main',  // ← ADDED
+    type: 'stair', 
+    neighbors: [] 
+  }; 
+  
+  nodes[stairRightId] = { 
+    id: stairRightId, 
+    x: 950, 
+    y: HALL_Y, 
+    floor, 
+    building: 'main',  // ← ADDED
+    type: 'stair', 
+    neighbors: [] 
+  };
 
   if (floor > 0) {
     const prevFloorPrefix = `F${floor - 1}`;
@@ -54,7 +95,17 @@ const generateHallwaysAndRooms = (floorPrefix, floor, stairs, nodes) => {
 
   for (let x = 150; x <= 850; x += 80) {
     const hallId = `${floorPrefix}_Hall_${x}`;
-    nodes[hallId] = { id: hallId, x, y: HALL_Y, floor, type: 'hall', neighbors: [prevHallId] };
+    
+    // ✅ CHANGED: Added "building: 'main'" to all hallway nodes
+    nodes[hallId] = { 
+      id: hallId, 
+      x, 
+      y: HALL_Y, 
+      floor, 
+      building: 'main',  // ← ADDED
+      type: 'hall', 
+      neighbors: [prevHallId] 
+    };
     
     nodes[prevHallId].neighbors.push(hallId);
     prevHallId = hallId;
@@ -86,25 +137,51 @@ const generateHallwaysAndRooms = (floorPrefix, floor, stairs, nodes) => {
 };
 
 const generateRoomPair = (floor, x, startCount, hallId, nodes) => {
+  // ✅ CHANGED: Added "building: 'main'" to all room nodes
+  
   // Top room
   const roomNumTop = (floor + 1) * 100 + startCount;
   const roomTopId = `Room ${roomNumTop}`;
-  nodes[roomTopId] = { id: roomTopId, x, y: 80, floor, type: 'room', label: `${roomNumTop}`, neighbors: [hallId] };
+  nodes[roomTopId] = { 
+    id: roomTopId, 
+    x, 
+    y: 80, 
+    floor, 
+    building: 'main',  // ← ADDED
+    type: 'room', 
+    label: `${roomNumTop}`, 
+    neighbors: [hallId] 
+  };
   nodes[hallId].neighbors.push(roomTopId);
 
   // Bottom room
   const roomNumBot = (floor + 1) * 100 + startCount + 1;
   const roomBotId = `Room ${roomNumBot}`;
-  nodes[roomBotId] = { id: roomBotId, x, y: 320, floor, type: 'room', label: `${roomNumBot}`, neighbors: [hallId] };
+  nodes[roomBotId] = { 
+    id: roomBotId, 
+    x, 
+    y: 320, 
+    floor, 
+    building: 'main',  // ← ADDED
+    type: 'room', 
+    label: `${roomNumBot}`, 
+    neighbors: [hallId] 
+  };
   nodes[hallId].neighbors.push(roomBotId);
 };
 
 const addSpecialNodes = (nodes) => {
-  // Kiosk
+  // ✅ CHANGED: Added "building: 'main'" to Kiosk
   const kioskId = "Kiosk";
   nodes[kioskId] = { 
-    id: kioskId, x: 480, y: 320, floor: 0, 
-    type: 'kiosk', label: "KIOSK", neighbors: ["F0_Hall_470"] 
+    id: kioskId, 
+    x: 480, 
+    y: 320, 
+    floor: 0, 
+    building: 'main',  // ← ADDED
+    type: 'kiosk', 
+    label: "KIOSK", 
+    neighbors: ["F0_Hall_470"] 
   };
   
   if (nodes["F0_Hall_470"]) {
@@ -114,11 +191,17 @@ const addSpecialNodes = (nodes) => {
     nodes["F0_Hall_390"].neighbors.push(kioskId);
   }
 
-  // Back Exit
+  // ✅ CHANGED: Added "building: 'main'" to Back Exit
   const backExitId = "Back Exit";
   nodes[backExitId] = { 
-    id: backExitId, x: 470, y: 50, floor: 0, 
-    type: 'exit', label: "EXIT", neighbors: ["F0_Hall_470"] 
+    id: backExitId, 
+    x: 470, 
+    y: 50, 
+    floor: 0, 
+    building: 'main',  // ← ADDED
+    type: 'exit', 
+    label: "EXIT", 
+    neighbors: ["F0_Hall_470"] 
   };
   
   if (nodes["F0_Hall_470"]) {

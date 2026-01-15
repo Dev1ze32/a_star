@@ -19,7 +19,14 @@ export const NursingFloorMap = ({
 }) => {
   const [cursor, setCursor] = useState({ x: 0, y: 0 });
   
-  const currentNodes = Object.values(graph).filter(n => n.floor == activeFloor);
+  //const currentNodes = Object.values(graph).filter(n => n.floor == activeFloor);
+  const currentNodes = Object.values(graph).filter(n => 
+    n.floor == activeFloor && (
+      n.id.toString().startsWith('N') || // Nursing rooms
+      n.type === 'library' ||            // Special case for Library
+      n.type === 'entrance'              // Special case for Entrance
+    )
+  );
   const pathSegments = generatePathSegments(path, graph, activeFloor);
   
   const floorNum = activeFloor + 1;

@@ -14,7 +14,11 @@ export const FloorMap = ({
 }) => {
   const [cursor, setCursor] = useState({ x: 0, y: 0 });
   
-  const currentNodes = Object.values(graph).filter(n => n.floor === activeFloor);
+  //const currentNodes = Object.values(graph).filter(n => n.floor === activeFloor);
+  const currentNodes = Object.values(graph).filter(n => 
+    n.floor === activeFloor && 
+    !n.id.toString().startsWith('N') // Exclude Nursing rooms
+  );
   const pathSegments = generatePathSegments(path, graph, activeFloor);
 
   return (

@@ -1,12 +1,33 @@
+/**
+ * ═══════════════════════════════════════════════════════════════════
+ * OUTSIDE VIEW - CAMPUS MAP WITH ROADS
+ * ═══════════════════════════════════════════════════════════════════
+ * 
+ * FILE LOCATION: src/components/OutsideView.jsx
+ * 
+ * UPDATES:
+ * ✅ Added road visualization from outdoorConfig
+ * ✅ Added outdoor path rendering for cross-building navigation
+ * ✅ Shows animated blue path when navigating between buildings
+ * 
+ * ═══════════════════════════════════════════════════════════════════
+ */
+
 import React, { useState } from 'react';
 import { PenTool } from 'lucide-react';
 import { Building } from './Building';
 import { BUILDINGS, CAMPUS_WIDTH, CAMPUS_HEIGHT } from '../constants/buildingsConfig';
+import { ROAD_SEGMENTS, OUTDOOR_NODES } from '../constants/outdoorConfig';
+import { generatePathSegments } from '../utils/pathfinding';
 
-export const OutsideView = ({ onEnterBuilding }) => {
+export const OutsideView = ({ onEnterBuilding, outdoorPath, graph }) => {
   const [hoveredBuilding, setHoveredBuilding] = useState(null);
   const [designMode, setDesignMode] = useState(false);
   const [cursor, setCursor] = useState({ x: 0, y: 0 });
+
+  // Generate outdoor path segments for visualization
+  const pathSegments = outdoorPath && graph ? 
+    generatePathSegments(outdoorPath, graph, 0) : [];
 
   const handleBuildingClick = (building) => {
     if (building.hasGraph) {
@@ -63,7 +84,7 @@ export const OutsideView = ({ onEnterBuilding }) => {
             backgroundSize: '30px 30px'
           }}
         >
-          {/* Decorative Paths */}
+          {/* Roads and Paths - SVG Layer */}
           <svg className="absolute inset-0 pointer-events-none" width={CAMPUS_WIDTH} height={CAMPUS_HEIGHT}>
             <defs>
               <pattern id="path-pattern" width="20" height="20" patternUnits="userSpaceOnUse">
@@ -72,10 +93,88 @@ export const OutsideView = ({ onEnterBuilding }) => {
                 <rect x="10" y="10" width="10" height="10" fill="#e5e5e5" />
               </pattern>
             </defs>
-            {/* Horizontal Path */}
-            <rect x="0" y={CAMPUS_HEIGHT / 2 - 30} width={CAMPUS_WIDTH} height="60" fill="url(#path-pattern)" opacity="0.8" />
-            {/* Vertical Path */}
-            <rect x={CAMPUS_WIDTH / 2 - 30} y="0" width="60" height={CAMPUS_HEIGHT} fill="url(#path-pattern)" opacity="0.8" />
+            
+            {/* ══════════════════════════════════════════════════════ */}
+            {/* CAMPUS ROADS - From outdoorConfig.js                  */}
+            {/* ══════════════════════════════════════════════════════ */}
+            {ROAD_SEGMENTS.map((segment, idx) => (
+              <g key={`road-${idx}`}>
+                {/* Road base (gray) */}
+                <line
+                  x1={segment.x1}
+                  y1={segment.y1}
+                  x2={segment.x2}
+                  y2={segment.y2}
+                  stroke="#a8a29e"
+                  strokeWidth="40"
+                  strokeLinecap="round"
+                />
+                {/* Road centerline (yellow dashed) */}
+                <line
+                  x1={segment.x1}
+                  y1={segment.y1}
+                  x2={segment.x2}
+                  y2={segment.y2}
+                  stroke="#fbbf24"
+                  strokeWidth="2"
+                  strokeDasharray="10 10"
+                  strokeLinecap="round"
+                />
+              </g>
+            ))}
+            
+            {/* ══════════════════════════════════════════════════════ */}
+            {/* OUTDOOR PATH VISUALIZATION (When navigating)           */}
+            {/* ══════════════════════════════════════════════════════ */}
+            {pathSegments.length > 0 && pathSegments.map((seg, idx) => {
+              if (seg.type === 'walk') {
+                return (
+                  <g key={`path-${idx}`}>
+                    {/* Animated path line (blue) */}
+                    <line
+                      x1={seg.x1}
+                      y1={seg.y1}
+                      x2={seg.x2}
+                      y2={seg.y2}
+                      stroke="#2563eb"
+                      strokeWidth="6"
+                      strokeDasharray="12 8"
+                      className="animate-pulse"
+                      strokeLinecap="round"
+                    />
+                    {/* Directional arrow at end */}
+                    <circle cx={seg.x2} cy={seg.y2} r="8" fill="#2563eb" />
+                  </g>
+                );
+              }
+              return null;
+            })}
+            
+            {/* ══════════════════════════════════════════════════════ */}
+            {/* DESIGN MODE: Show outdoor nodes                       */}
+            {/* ══════════════════════════════════════════════════════ */}
+            {designMode && Object.values(OUTDOOR_NODES).map(node => (
+              <g key={node.id}>
+                <circle
+                  cx={node.x}
+                  cy={node.y}
+                  r="8"
+                  fill={node.type === 'entrance' ? '#10b981' : node.type === 'exit' ? '#ef4444' : '#3b82f6'}
+                  stroke="white"
+                  strokeWidth="2"
+                  opacity="0.8"
+                />
+                <text
+                  x={node.x}
+                  y={node.y - 15}
+                  textAnchor="middle"
+                  className="text-xs font-bold fill-slate-700"
+                  style={{ fontSize: '10px', pointerEvents: 'none' }}
+                >
+                  {node.id}
+                </text>
+              </g>
+            ))}
           </svg>
 
           {/* Buildings */}
@@ -154,6 +253,19 @@ export const OutsideView = ({ onEnterBuilding }) => {
                     </div>
                   </div>
                 ))}
+                
+                {/* Outdoor Nodes Info */}
+                <div className="mt-4 pt-2 border-t border-amber-300">
+                  <div className="font-bold text-amber-900 mb-2">Outdoor Nodes:</div>
+                  {Object.values(OUTDOOR_NODES).slice(0, 5).map(node => (
+                    <div key={node.id} className="text-amber-700 text-xs mb-1">
+                      {node.id}: ({node.x}, {node.y})
+                    </div>
+                  ))}
+                  <div className="text-amber-600 text-xs mt-1">
+                    ... {Object.values(OUTDOOR_NODES).length} total nodes
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -163,7 +275,7 @@ export const OutsideView = ({ onEnterBuilding }) => {
         {designMode && (
           <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-amber-100 border-2 border-amber-500 rounded-lg px-6 py-3 shadow-xl">
             <p className="text-amber-900 font-bold text-center">
-              🎨 Design Mode Active: Hover to see coordinates. Update positions in buildingsConfig.js
+              🎨 Design Mode Active: Hover to see coordinates. Outdoor nodes shown as colored dots.
             </p>
           </div>
         )}
@@ -173,11 +285,16 @@ export const OutsideView = ({ onEnterBuilding }) => {
       <div className="bg-white bg-opacity-90 backdrop-blur-sm p-4 text-center text-slate-600 text-sm border-t">
         {designMode ? (
           <span className="font-bold text-amber-700">
-            Design Mode: Use coordinates to position buildings in src/constants/buildingsConfig.js
+            Design Mode: Roads and outdoor nodes visible. Check console for connection logs.
           </span>
         ) : (
           <span>
             🏛️ {BUILDINGS.filter(b => b.hasGraph).length} of {BUILDINGS.length} buildings available for navigation
+            {pathSegments.length > 0 && (
+              <span className="ml-4 text-blue-600 font-semibold">
+                🚶 Following outdoor path...
+              </span>
+            )}
           </span>
         )}
       </div>
