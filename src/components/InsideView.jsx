@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { NavigationControls } from './NavigationControls';
 import { FloorMap } from './FloorMap';
-import { BUILDINGS } from '../constants/buildingsConfig';
+// ✅ FIXED: Split the imports into the correct files
+import { BUILDINGS } from '../constants/buildingsConfig'; // Plural (contains the list of buildings)
+import { BUILDING_WIDTH, BUILDING_HEIGHT } from '../constants/buildingConfig'; // Singular (contains Main Building dimensions)
+import { ResponsiveMapContainer } from './ResponsiveMapContainer';
 
 export const InsideView = ({ 
   graph, 
@@ -23,8 +26,8 @@ export const InsideView = ({
 
   return (
     <div className="flex flex-col h-full bg-slate-50">
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 shadow-md">
-        <h2 className="text-2xl font-bold text-center">
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 shadow-md shrink-0">
+        <h2 className="text-xl font-bold text-center">
           {currentBuilding?.name || 'Building'} - Interior Map
         </h2>
       </div>
@@ -41,31 +44,21 @@ export const InsideView = ({
         setActiveFloor={setActiveFloor}
         designMode={designMode}
         setDesignMode={setDesignMode}
-        maxFloors={3} // ✅ FIXED: Main Building has 4 floors (0-3)
+        maxFloors={3}
       />
 
-      <div className="flex-1 overflow-auto relative bg-slate-50 flex items-center justify-center p-8">
-        <FloorMap
-          graph={graph}
-          activeFloor={activeFloor}
-          path={path}
-          startNode={startNode}
-          endNode={endNode}
-          onNodeClick={setEndNode}
-          designMode={designMode}
-        />
-      </div>
-
-      <div className="bg-white border-t p-4 text-center text-slate-500 text-sm">
-        {designMode ? (
-          <span className="font-bold text-amber-600">
-            DESIGN MODE ACTIVE: Use the X/Y coordinates to update the 'nodes' in the code!
-          </span>
-        ) : (
-          path.length > 0 ? (
-            <span className="font-semibold text-blue-600">Navigation Active: Follow the dotted line.</span>
-          ) : "Select a Destination."
-        )}
+      <div className="flex-1 overflow-hidden relative bg-slate-100">
+        <ResponsiveMapContainer originalWidth={BUILDING_WIDTH} originalHeight={BUILDING_HEIGHT}>
+          <FloorMap
+            graph={graph}
+            activeFloor={activeFloor}
+            path={path}
+            startNode={startNode}
+            endNode={endNode}
+            onNodeClick={setEndNode}
+            designMode={designMode}
+          />
+        </ResponsiveMapContainer>
       </div>
     </div>
   );
